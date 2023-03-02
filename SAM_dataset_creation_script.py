@@ -145,11 +145,9 @@ def main(args):
     num_samples = config.getint("DATASET", "num_samples")
     # -------------------------------------------------------
     
-    lookup_file_path = root_dir + "lookup.csv" # the name of the lookup file to use or create
+    lookup_file_path = root_dir + "main_lookup.csv" # the name of the lookup file to use or create
     data_file_dir = root_dir + "npz_files/" # path of the directory to store the actual datafiles in
-
-    Path(root_dir + "/npz_files/").mkdir(parents=True, exist_ok=True)
-    lookup_file_path = root_dir + "lookup_table.csv"
+    Path(data_file_dir).mkdir(parents=True, exist_ok=True)
 
     # write config to log file
     datetime_now_str = str(datetime.now()).split(".")[0]
@@ -166,7 +164,7 @@ def main(args):
             logfile
             )
     
-    header = "" if Path(lookup_file_path) else "mu,t_lim,dim_pts,fname,logfile"
+    header = "" if Path.exists(Path(lookup_file_path)) else "mu,t_lim,dim_pts,fname,logfile"
 
     ta = None
     order = len(SAM.get_ODE_sys())
