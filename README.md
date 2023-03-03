@@ -26,6 +26,17 @@ mamba env create -n DL_PSI_env --file environment.yml
 conda activate DL_PSI_env
 ```
 
+You can double check that PyTorch is set up to use your GPU with 
+```
+# activate the env -- if you haven't already
+conda activate DL_PSI_env
+
+# run the PyTorch debug script
+python collect_env
+```
+
+And confirming that the output indicates that PyTorch thinks that CuDA is available.
+
 # Running the code:
 
 ## **Model Training**: 
