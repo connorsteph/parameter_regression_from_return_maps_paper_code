@@ -73,61 +73,11 @@ def main(args):
     max_train_time = config.get('TRAINER', 'max_train_time', fallback="01:00:00:00")
     print(f'{max_train_time=}, {max_train_epochs=}, {max_train_steps=}')
     top_k_models =  config.getint('TRAINER', 'top_k', fallback=1)
+    num_runs = config.getint('TRAINER', 'num_runs', fallback=1)
     # ------------------------------------------------------- 
     for img_width in img_widths:
         for randomize in randomize_flags:
             for num_samples in num_sample_list:
-                # reset random seeds to ensure that order of execution of model training doesn't matter
-                np.random.seed(42)
-                torch.manual_seed(42)
-                
-                logger = pl.loggers.TensorBoardLogger(log_dir+f'/num_samples_{num_samples}/img_width_{img_width}/randomized_{randomize}/', name + f"num_samples_{num_samples}")
-                checkpoint_callback = pl.callbacks.ModelCheckpoint(
-                        monitor='val_mse',
-                        filename='{epoch:02d}-{val_mse:1.2e}' + f'_randomized_{randomize}',
-                        save_top_k=top_k_models,
-                        mode='min',
-                    )
-                    
-                datamodule = HenonMapPoincareDataModule(
-                    num_samples=num_samples,
-                    batch_size=batch_size, 
-                    a_range=a_range,
-                    b_range=b_range,
-                    x_range=x_range,
-                    y_range=y_range,
-                    img_width=img_width,
-                    alpha=alpha,
-                    min_samples=min_samples,
-                    max_samples=max_samples,
-                    min_traj_len=min_traj_len,
-                    num_iters=max_traj_len,
-                    randomize=randomize,
-                    num_workers=num_workers,
-                    logger=logger,
-                    verbose=True
-                )
-
-                trainer = pl.Trainer(
-                    logger=logger, 
-                    log_every_n_steps=20,
-                    check_val_every_n_epoch=1,
-                    num_sanity_val_steps=0,
-                    callbacks=[checkpoint_callback],
-                    enable_checkpointing=True,
-                    enable_progress_bar=True,
-                    auto_select_gpus=auto_select_gpus,
-                    accelerator='gpu',
-                    strategy = strategy,
-                    deterministic=deterministic,
-                    devices=devices,
-                    precision=precision,
-                    max_steps=max_train_steps,
-                    max_epochs=max_train_epochs,
-                    max_time=max_train_time,
-                )
-
-
                 # set parameters for re-weighted MSE
                 # the offsets aren't really needed, but we keep them to center the adjusted parameter range around 0
                 a_width = a_range[1] - a_range[0]
@@ -136,15 +86,71 @@ def main(args):
                 b_midpt = (b_range[1] + b_range[0]) / 2
                 loss_offsets = [-a_midpt, -b_midpt]
                 loss_weights = [10/a_width, 10/b_width] # shift and scale factor to put model outputs / labels in [-5,5] range
-                model = LightningResNet18(out_dim=num_params,
-                    learning_rate=learning_rate,
-                    weight_decay=weight_decay,
-                    loss_weights=loss_weights,
-                    loss_offsets=loss_offsets
-                )
-                trainer.fit(model, datamodule=datamodule)
+                
+                # set random seeds to ensure that order of execution of model training doesn't matter
+                np.random.seed(42)
+                torch.manual_seed(42)
+
+                datamodule = HenonMapPoincareDataModule(
+                        num_samples=num_samples,
+                        batch_size=batch_size, 
+                        a_range=a_range,
+                        b_range=b_range,
+                        x_range=x_range,
+                        y_range=y_range,
+                        img_width=img_width,
+                        alpha=alpha,
+                        min_samples=min_samples,
+                        max_samples=max_samples,
+                        min_traj_len=min_traj_len,
+                        num_iters=max_traj_len,
+                        randomize=randomize,
+                        num_workers=num_workers,
+                        verbose=True
+                    )
+
+                for run in range(num_runs):
+                    print(f"Starting run {run+1} of {num_runs}")
+                    logger = pl.loggers.TensorBoardLogger(log_dir+f'/num_samples_{num_samples}/img_width_{img_width}/randomized_{randomize}/', name + f"num_samples_{num_samples}")
+                    checkpoint_callback = pl.callbacks.ModelCheckpoint(
+                            monitor='val_mse',
+                            filename='{epoch:02d}-{val_mse:1.2e}' + f'_randomized_{randomize}',
+                            save_top_k=top_k_models,
+                            mode='min',
+                        )
+                
+                    datamodule.logger = logger
+                    datamodule.log_params()
+
+                    trainer = pl.Trainer(
+                        logger=logger, 
+                        log_every_n_steps=20,
+                        check_val_every_n_epoch=1,
+                        num_sanity_val_steps=0,
+                        callbacks=[checkpoint_callback],
+                        enable_checkpointing=True,
+                        enable_progress_bar=True,
+                        auto_select_gpus=auto_select_gpus,
+                        accelerator='gpu',
+                        strategy = strategy,
+                        deterministic=deterministic,
+                        devices=devices,
+                        precision=precision,
+                        max_steps=max_train_steps,
+                        max_epochs=max_train_epochs,
+                        max_time=max_train_time,
+                    )
+
+                    model = LightningResNet18(out_dim=num_params,
+                        learning_rate=learning_rate,
+                        weight_decay=weight_decay,
+                        loss_weights=loss_weights,
+                        loss_offsets=loss_offsets
+                    )
+                    trainer.fit(model, datamodule=datamodule)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, required=True)
     main(parser.parse_args())
+

@@ -269,7 +269,10 @@ class HenonMapPoincareDataModule(pl.LightningDataModule):
         self.max_samples = max_samples
         self.randomize = randomize
         self.persistent_workers = persistent_workers
+        self.num_samples = num_samples
         self.num_workers = num_workers
+        self.alpha = alpha
+        
         self.logger = logger
         if verbose:
             print("Building datasets...")
@@ -299,13 +302,15 @@ class HenonMapPoincareDataModule(pl.LightningDataModule):
             "max_samples":max_samples, "randomize":randomize, "num_train": len(self.train_data),
             "num_val": len(self.val_data), "num_test": len(self.test_data), "alpha":alpha,})
 
-    def set_batch_size(self, batch_size):
+    def log_params(self):
         if self.logger is not None:
-            self.logger.log_hyperparams({"batch_size":batch_size})
-        self.batch_size = batch_size
+            self.logger.log_hyperparams({"num_samples": self.num_samples, "img_width": self.img_width, "x_range":self.x_range,
+            "y_range":self.y_range, "batch_size":self.batch_size, "a_range":self.a_range, "b_range":self.b_range,
+            "min_traj_len":self.min_traj_len, "min_samples": self.min_samples, "num_iters": self.num_iters,
+            "max_samples":self.max_samples, "randomize":self.randomize, "num_train": len(self.train_data),
+            "num_val": len(self.val_data), "num_test": len(self.test_data), "alpha":self.alpha,})
 
-    def get_batch_size(self):
-        return self.batch_size
+
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size,
@@ -390,11 +395,12 @@ class PoincareDataModule(pl.LightningDataModule):
             "max_samples":max_samples, "randomize":randomize, "num_train": len(self.train_data),
             "num_val": len(self.val_data), "num_test": len(self.test_data), "alpha":alpha, "coords":coords,})
 
-    def set_batch_size(self, batch_size):
-        self.batch_size = batch_size
-
-    def get_batch_size(self):
-        return self.batch_size
+    def log_params(self):
+        if self.logger is not None:
+            self.logger.log_hyperparams({"sample_frac": self.sample_frac, "img_width":self.img_width, "x_range":self.x_range,
+            "y_range":self.y_range, "batch_size":self.batch_size, "min_traj_len":self.min_traj_len, "min_samples": self.min_samples,
+            "max_samples":self.max_samples, "randomize":self.randomize, "num_train": len(self.train_data),
+            "num_val": len(self.val_data), "num_test": len(self.test_data), "alpha":self.alpha, "coords":self.coords,})
 
     def train_dataloader(self):
         return DataLoader(self.train_data, batch_size=self.batch_size,

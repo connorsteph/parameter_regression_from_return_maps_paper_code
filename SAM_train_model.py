@@ -80,9 +80,9 @@ def main(args):
     max_train_time = config.get('TRAINER', 'max_train_time', fallback="01:00:00:00")
     print(f'{max_train_time=}, {max_train_epochs=}, {max_train_steps=}')
     top_k_models =  config.getint('TRAINER', 'top_k', fallback=1)
+    num_runs = config.getint('TRAINER', 'num_runs', fallback=1)
     # ------------------------------------------------------- 
 
-    
     if args.split_data == True:
             Path(local_lookup_dir).mkdir(parents=True, exist_ok=True)
             # check if local lookup table exists already
@@ -138,26 +138,6 @@ def main(args):
                         save_top_k=top_k_models,
                         mode='min',
                     )
-                    
-                datamodule = PoincareDataModule(
-                    local_lookup_dir=local_lookup_dir,
-                    data_dir=data_dir,
-                    coords=coords,
-                    sample_frac=sample_frac,
-                    img_width=img_width,
-                    batch_size=batch_size, 
-                    x_range=x_range,
-                    y_range=y_range,
-                    alpha=alpha,
-                    min_samples=min_samples,
-                    max_samples=max_samples,
-                    min_traj_len=min_traj_len,
-                    max_traj_len=max_traj_len,
-                    randomize=randomize,
-                    num_workers=num_workers,
-                    logger=logger,
-                    verbose=True
-                )
 
                 trainer = pl.Trainer(
                     logger=logger, 
@@ -178,7 +158,6 @@ def main(args):
                     max_time=max_train_time,
                 )
 
-
                 if param_min and param_max:
                     # set parameters for re-weighted MSE
                     param_widths = param_max - param_min
@@ -190,13 +169,35 @@ def main(args):
                     loss_weights = [1. for _ in range(num_params)]
                     loss_offsets = [0. for _ in range(num_params)]
 
-                model = LightningResNet18(out_dim=num_params,
-                    learning_rate=learning_rate,
-                    weight_decay=weight_decay,
-                    loss_weights=loss_weights,
-                    loss_offsets=loss_offsets
+
+                    
+                datamodule = PoincareDataModule(
+                    local_lookup_dir=local_lookup_dir,
+                    data_dir=data_dir,
+                    coords=coords,
+                    sample_frac=sample_frac,
+                    img_width=img_width,
+                    batch_size=batch_size, 
+                    x_range=x_range,
+                    y_range=y_range,
+                    alpha=alpha,
+                    min_samples=min_samples,
+                    max_samples=max_samples,
+                    min_traj_len=min_traj_len,
+                    max_traj_len=max_traj_len,
+                    randomize=randomize,
+                    num_workers=num_workers,
+                    logger=logger,
+                    verbose=True
                 )
-                trainer.fit(model, datamodule=datamodule)
+                for _ in range(num_runs):
+                    model = LightningResNet18(out_dim=num_params,
+                        learning_rate=learning_rate,
+                        weight_decay=weight_decay,
+                        loss_weights=loss_weights,
+                        loss_offsets=loss_offsets
+                    )
+                    trainer.fit(model, datamodule=datamodule)
 
 
 if __name__ == "__main__":
