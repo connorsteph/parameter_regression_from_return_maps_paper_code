@@ -12,21 +12,30 @@ git clone ...
 # cd into the repo
 cd poincare_deep_learning
 
-# create a bootstrap env (allows us to use mamba (https://anaconda.org/conda-forge/mamba) to speed up the env creation below)
+# install mamba in your base env -- recommended but not required for the next step. Just replace mamba with conda when we build the env from the environment.yml file
 
-conda create -p /tmp/bootstrap -c conda-forge mamba
-conda activate /tmp/bootstrap
+# activate the base env
+conda activate
+# install mamba
+conda install -c conda-forge mamba
 
-# build the env from the environment.yml file in `third_party/conda`
-mamba env create --name poincare_DL_env --file environment.yml
-
-# remove the bootstrap env
-conda deactivate
-rm -rf /tmp/bootstrap
+# build the env from the environment.yml file
+mamba env create -n DL_PSI_env --file environment.yml
 
 # activate the new env
-conda activate poincare_DL_env
+conda activate DL_PSI_env
 ```
+
+You can double check that PyTorch is set up to use your GPU with 
+```
+# activate the env -- if you haven't already
+conda activate DL_PSI_env
+
+# run the PyTorch debug script
+python collect_env
+```
+
+And confirming that the output indicates that PyTorch thinks that CuDA is available.
 
 # Running the code:
 
