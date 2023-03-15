@@ -72,7 +72,7 @@ def main(args):
     max_train_steps = config.getint('TRAINER', 'max_train_steps', fallback=-1)
     max_train_time = config.get('TRAINER', 'max_train_time', fallback="01:00:00:00")
     print(f'{max_train_time=}, {max_train_epochs=}, {max_train_steps=}')
-    top_k = config.getint('TRAINER', 'top_k', fallback=1)
+    top_k_models =  config.getint('TRAINER', 'top_k', fallback=1)
     # ------------------------------------------------------- 
     for img_width in img_widths:
         for randomize in randomize_flags:
@@ -85,7 +85,7 @@ def main(args):
                 checkpoint_callback = pl.callbacks.ModelCheckpoint(
                         monitor='val_mse',
                         filename='{epoch:02d}-{val_mse:1.2e}' + f'_randomized_{randomize}',
-                        save_top_k=top_k,
+                        save_top_k=top_k_models,
                         mode='min',
                     )
                     

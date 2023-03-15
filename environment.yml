@@ -6,12 +6,14 @@ channels:
   - defaults
 dependencies:
   - python=3.10.*
+  # - ipykernel # optional -- for interactive development, e.g. Jupyter Notebooks
+  # - ipywidgets
   - matplotlib
+  - seaborn=0.12.1
   - numpy
   - pandas
   - python-dateutil
   - heyoka.py=0.17.0
-  # - cudatoolkit=11.6
   - pytorch::pytorch
   - pytorch::torchvision
   - pytorch::pytorch-cuda=11.6

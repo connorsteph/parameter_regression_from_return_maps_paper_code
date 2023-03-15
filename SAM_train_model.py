@@ -9,9 +9,6 @@ from pathlib import Path
 from pytorch_lightning.strategies import DDPStrategy
 from paper_utils import PoincareDataModule, LightningResNet18
 
-np.random.seed(42)
-torch.manual_seed(42)
-
 def main(args):
     isBool = lambda x: x.lower() == "true"
     converters = {'IntList': lambda x: [int(i.strip()) for i in x.strip(" [](){}").split(',')],
@@ -82,7 +79,7 @@ def main(args):
     max_train_steps = config.getint('TRAINER', 'max_train_steps', fallback=-1)
     max_train_time = config.get('TRAINER', 'max_train_time', fallback="01:00:00:00")
     print(f'{max_train_time=}, {max_train_epochs=}, {max_train_steps=}')
-    top_k = config.getint('TRAINER', 'top_k', fallback=1)
+    top_k_models =  config.getint('TRAINER', 'top_k', fallback=1)
     # ------------------------------------------------------- 
 
     
@@ -138,7 +135,7 @@ def main(args):
                 checkpoint_callback = pl.callbacks.ModelCheckpoint(
                         monitor='val_mse',
                         filename='{epoch:02d}-{val_mse:1.2e}' + f'_randomized_{randomize}',
-                        save_top_k=top_k,
+                        save_top_k=top_k_models,
                         mode='min',
                     )
                     

@@ -484,7 +484,7 @@ class LightningResNet18(pl.LightningModule):
         self.save_hyperparameters()
         self.out_dim = out_dim
         # resnet18 modified for single channel images
-        self.model = resnet18(pretrained=False, num_classes=out_dim)
+        self.model = resnet18(weights=False, num_classes=out_dim)
         self.model.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
 
         self.best_val_mse = torch.inf
