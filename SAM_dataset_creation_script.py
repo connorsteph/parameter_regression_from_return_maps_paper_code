@@ -8,6 +8,7 @@ import configparser
 import argparse
 import yaml
 
+
 from pathlib import Path
 from tqdm import tqdm
 
@@ -168,16 +169,12 @@ def main(args):
 
     ta = None
     order = len(SAM.get_ODE_sys())
-    t_idx = order
     iter = 0
     
     mu_list = np.linspace(mu_min, mu_max, num_samples)
 
     with tqdm(total=len(mu_list)) as pbar:
         for mu in tqdm((mu_list)):
-            # if ta is not None:
-                # ta.pars[:] = np.array([mu, g, 1.0]).repeat(4).reshape(-1, batch_size)
-
             initial_state_list = (
                 [r, 0.0, p_r, None]
                 for r in np.linspace(1e-3, E / (mu - 1.0) - 1e-3, dim_pts)
@@ -190,6 +187,9 @@ def main(args):
             initial_state_list = SAM.fill_initial_state_list(
                 initial_state_list, SAM.H, E, 3, [mu, g]
             )
+
+            if ta is not None:
+                ta.pars[:] = np.array([mu, g,]).repeat(4).reshape(-1, batch_size)
 
             (
                 map_list,
@@ -209,10 +209,8 @@ def main(args):
             )
 
             coord_trajectories = np.empty(dim_pts**2, object)
-            crossing_times = np.empty_like(coord_trajectories)
 
             coord_trajectories[:] = [map[:, :order] for map in map_list]
-            crossing_times[:] = [map[:, t_idx] for map in map_list]
 
             hash_str = str([mu, g, E, t_lim]) + str(initial_state_list)
             fname = str(
@@ -224,7 +222,6 @@ def main(args):
             np.savez_compressed(
                 data_file_dir + fname,
                 coord_traj=coord_trajectories,
-                crossing_times=crossing_times,
             )
 
             # append the new file, along with it's parameters, and the corresponding logfile to the lookup table
@@ -234,10 +231,11 @@ def main(args):
                     lookup_file, row, fmt="%s", delimiter=",", header=header, comments=""
                 )
             header = ""
-            
+
             iter += 1
             pbar.update(1)
         pbar.close()
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', type=str, required=True)

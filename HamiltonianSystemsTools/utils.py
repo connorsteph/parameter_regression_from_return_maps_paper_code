@@ -964,7 +964,6 @@ class HamiltonianSystem:
         t_events=[],
         wrap_coords=None,
         t_lim=None,
-        label_t_lim=None,
         rng_gen_list=None,
         params=[],
         num_pts=None,
@@ -987,9 +986,6 @@ class HamiltonianSystem:
             wrap_coords: a list of indices of state variables that need to be wrapped during propagation to the interval (-pi, pi] with periodic boundary conditions.
 
             t_lim: time limit for propagation to be used to generate the Poincare section crossings
-
-            label_t_lim (optional): a second time limit for propogation. if larger than t_lim, integration of the ODE system will continue without recording additional Poincare section
-                crossings in order to obtain a better estimate of indicators from the variational equations.
 
             params (optional): heyoka runtime parameters for the system -- used to respect integral constraints and propagate the state values
 

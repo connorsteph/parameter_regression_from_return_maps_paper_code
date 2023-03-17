@@ -6,8 +6,11 @@ channels:
   - defaults
 dependencies:
   - python=3.10.*
-  # - ipykernel # optional -- for interactive development, e.g. Jupyter Notebooks
-  # - ipywidgets
+  # optional: for jupyter notebook development
+  # ------
+  - ipykernel 
+  - ipywidgets
+  # ------
   - matplotlib
   - seaborn=0.12.1
   - numpy
