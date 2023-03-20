@@ -56,7 +56,8 @@ class LoadPoincareTrajectoryDataset(Dataset):
 
         self.lookup_df = pd.read_csv(root_dir + lookup_file, delimiter=",")
         print(len(self.lookup_df))
-        self.lookup_df = self.lookup_df.where(path.isfile(self.data_dir + self.lookup_df['fname']))
+        self.lookup_df = self.lookup_df.where(
+            path.isfile(self.data_dir + self.lookup_df['fname']))
         print(len(self.lookup_df))
         self.transform = transform
         self.coord_indices = coord_indices
@@ -270,7 +271,8 @@ class LoadPoincareTrajectoryDatasetFromServerInMemory(object):
                             f"/home/connorsteph/SAM_traj_classification_data/npz_files/{fname}",
                             self.root_dir + "npz_files/",
                         )
-            curr_npz = np.load(self.root_dir + f"npz_files/{fname}", allow_pickle=True)
+            curr_npz = np.load(
+                self.root_dir + f"npz_files/{fname}", allow_pickle=True)
             for j in range(self.lookup_df.iloc[i]["dim_pts"] ** 2):
                 mu = self.lookup_df.iloc[i]["mu"]
                 traj = curr_npz["coord_traj"][j][:, self.coord_indices]
@@ -304,16 +306,16 @@ class LoadPoincareTrajectoryDatasetFromServerInMemory(object):
 
 class LoadPoincareMapGridDataset(Dataset):
     def __init__(self, lookup_dir, lookup_fname, data_dir, transform=None, coord_indices=None
-    ):
+                 ):
         """
         Args:
             root_dir (string): Path to find folders containing lookup files and data folders of .npz files
             lookup_file (string): name of the .csv file containing the lookup table of file names for the samples
             transform (callable, optional): Optional transform to be applied on a sample
         """
-        
+
         self.lookup_df = pd.read_csv(lookup_dir + lookup_fname, delimiter=",")
-        is_file = lambda x: path.isfile(data_dir + x)
+        def is_file(x): return path.isfile(data_dir + x)
         is_file = np.vectorize(is_file)
         # print(len(self.lookup_df))
         self.lookup_df = self.lookup_df[is_file(self.lookup_df['fname'])]
@@ -348,6 +350,7 @@ class LoadPoincareMapGridDataset(Dataset):
         else:
             return sample
 
+
 class LoadPoincareMapGridDatasetInMemory(Dataset):
     def __init__(
         self, lookup_dir, lookup_fname, data_dir, transform=None, coord_indices=None
@@ -360,7 +363,7 @@ class LoadPoincareMapGridDatasetInMemory(Dataset):
         """
         # sanitize lookup_df
         self.lookup_df = pd.read_csv(lookup_dir + lookup_fname, delimiter=",")
-        is_file = lambda x: path.isfile(data_dir + x)
+        def is_file(x): return path.isfile(data_dir + x)
         is_file = np.vectorize(is_file)
         # print(len(self.lookup_df))
         self.lookup_df = self.lookup_df[is_file(self.lookup_df['fname'])]
@@ -368,7 +371,6 @@ class LoadPoincareMapGridDatasetInMemory(Dataset):
         self.transform = transform
         self.coord_indices = coord_indices
         self.entries = np.empty(len(self.lookup_df), dtype=object)
-
 
         for i in range(len(self.lookup_df)):
             print(f"{i:3d} / {len(self.lookup_df):3d}", end="\r")
@@ -458,7 +460,8 @@ class LoadPoincareMapGridDatasetFromServer(Dataset):
                         f"{self.remote_dir}{fname}",
                         self.root_dir + "npz_files/",
                     )
-        curr_npz = np.load(self.root_dir + f"npz_files/{fname}", allow_pickle=True)
+        curr_npz = np.load(
+            self.root_dir + f"npz_files/{fname}", allow_pickle=True)
         mu = self.lookup_df.iloc[idx]["mu"]
         traj = curr_npz["coord_traj"]
         terminal_MEGNO_val = curr_npz["MEGNO_term"]
@@ -506,7 +509,8 @@ class LoadPoincareMapGridDatasetFromServerInMemory(Dataset):
                             f"/home/connorsteph/SAM_traj_classification_data/npz_files/{fname}",
                             self.root_dir + "npz_files/",
                         )
-            curr_npz = np.load(self.root_dir + f"npz_files/{fname}", allow_pickle=True)
+            curr_npz = np.load(
+                self.root_dir + f"npz_files/{fname}", allow_pickle=True)
             mu = self.lookup_df.iloc[i]["mu"]
             traj = curr_npz["coord_traj"]
             terminal_MEGNO_val = curr_npz["MEGNO_term"]
@@ -789,20 +793,23 @@ class MapListtoGrid:
             flat_array
         )  # make sure the original array is a flattened square
         output = flat_array
-        if isinstance(flat_array[0], np.ndarray):  # check if output array should be 3-D
+        # check if output array should be 3-D
+        if isinstance(flat_array[0], np.ndarray):
             output = np.array(
                 [self.pad_to_length(item) for item in flat_array], dtype=object
             )
             output = np.array([self.crop_to_length(item) for item in output])
         return np.array(
-            [[output[j + i * dim_pts] for j in range(dim_pts)] for i in range(dim_pts)],
+            [[output[j + i * dim_pts]
+                for j in range(dim_pts)] for i in range(dim_pts)],
             dtype=dtype,
         )
 
     def __call__(self, sample):
         map_list = sample["map_list"]
         if self.coords:
-            map_list = np.array([map[:, self.coords] for map in map_list], dtype=object)
+            map_list = np.array([map[:, self.coords]
+                                for map in map_list], dtype=object)
         label_list = sample["label_list"]
         transient_label_list = sample["transient_label_list"]
         crossing_time_list = sample["crossing_times_list"]
@@ -822,7 +829,8 @@ class MapListtoGrid:
                 self.pad_to = self.max_length
                 self.crop_to = self.pad_to
 
-        grid_of_trajectories = self.flat_to_2d_array(map_list, dtype=np.float32)
+        grid_of_trajectories = self.flat_to_2d_array(
+            map_list, dtype=np.float32)
         grid_of_transient_labels = self.flat_to_2d_array(
             transient_label_list, dtype=np.float32
         )
@@ -887,8 +895,8 @@ class MapListToPixelArray(object):
         self.coords = coords
         self.normalized = normalized
         self.n_classes = n_classes
-        self.x_range=x_range
-        self.y_range=y_range
+        self.x_range = x_range
+        self.y_range = y_range
 
     def __call__(self, sample):
         map_list = sample["map_list"]
@@ -906,7 +914,7 @@ class MapListToPixelArray(object):
             (self.img_width, self.img_width), dtype=np.uint8
         )
         map_list = [map[:, self.coords] for map in map_list]
-        if self.x_range is None: 
+        if self.x_range is None:
             x_range = [mu-1-.25, mu+.25]
         else:
             x_range = self.x_range
@@ -920,7 +928,8 @@ class MapListToPixelArray(object):
         for idx, map in enumerate(map_list):
             if self.normalized:
                 # warp Poincare map to fill unit square
-                x_scaled = map[:, 0] * (mu - 1.0) / self.E  # warp x_vals to (0,1) range
+                # warp x_vals to (0,1) range
+                x_scaled = map[:, 0] * (mu - 1.0) / self.E
                 y_scaled = (
                     map[:, 1]
                     / (2 * np.sqrt(2 * (mu + 1) * (self.E - (mu - 1) * map[:, 0])))
@@ -928,10 +937,10 @@ class MapListToPixelArray(object):
                 )  # warp y vals to (0,1) range
             else:
                 # remove all items in map with coord 0 outside of x_range and coord 1 outside of y_range
-                indices = np.greater_equal(map[:,0], x_range[0]) \
-                * np.less_equal(map[:,0], x_range[1]) \
-                * np.greater_equal(map[:,1], y_range[0]) \
-                * np.less_equal(map[:,1], y_range[1])
+                indices = np.greater_equal(map[:, 0], x_range[0]) \
+                    * np.less_equal(map[:, 0], x_range[1]) \
+                    * np.greater_equal(map[:, 1], y_range[0]) \
+                    * np.less_equal(map[:, 1], y_range[1])
                 map = map[indices, :]
                 # scale Poincare map to fit into the unit square
                 x_scaled = (map[:, 0] - x_range[0]) / (
@@ -943,7 +952,8 @@ class MapListToPixelArray(object):
 
             # discretize crossings to grid coordinates
             x_scaled = np.uint8(np.round(float(self.img_width - 1) * x_scaled))
-            y_scaled = np.uint8(np.round(float(self.img_width - 1) * (1.0 - y_scaled)))
+            y_scaled = np.uint8(
+                np.round(float(self.img_width - 1) * (1.0 - y_scaled)))
             pixel_array[y_scaled, x_scaled] = np.uint8(
                 self.alpha * pixel_array[y_scaled, x_scaled]
             )  # shade pixels with alpha by counting crossings per square
@@ -954,7 +964,8 @@ class MapListToPixelArray(object):
         # normalize pixel values from [vmin, vmax] range to [-1,1] range
 
         image = 2.0 * (
-            (pixel_array.astype(np.float16) - self.vmin) / float(self.vmax - self.vmin)
+            (pixel_array.astype(np.float16) - self.vmin) /
+            float(self.vmax - self.vmin)
         )
         image -= 1.0
         if self.n_classes:
@@ -997,8 +1008,8 @@ class RandomCroppedMapListToPixelArray(object):
         self.min_length = min_length
         self.coords = coords
         self.normalized = normalized
-        self.x_range=x_range
-        self.y_range=y_range
+        self.x_range = x_range
+        self.y_range = y_range
 
     def __call__(self, sample):
         map_list = sample["map_list"]
@@ -1010,7 +1021,7 @@ class RandomCroppedMapListToPixelArray(object):
             ]
         else:
             y_range = self.y_range
-        if self.x_range is None: # this is only for CR3BP
+        if self.x_range is None:  # this is only for CR3BP
             x_range = [mu-1-.25, mu+.25]
             # x_range = [
             #     np.min([np.min(map[:, 0]) for map in map_list]),
@@ -1028,11 +1039,12 @@ class RandomCroppedMapListToPixelArray(object):
             (self.img_width, self.img_width), dtype=np.uint8
         )
         map_list = [map[:, self.coords] for map in map_list]
-        
+
         for map in map_list:
             if self.normalized:
                 # warp Poincare map to fill unit square
-                x_scaled = map[:, 0] * (mu - 1.0) / self.E  # warp x_vals to (0,1) range
+                # warp x_vals to (0,1) range
+                x_scaled = map[:, 0] * (mu - 1.0) / self.E
                 y_scaled = (
                     map[:, 1]
                     / (2 * np.sqrt(2 * (mu + 1) * (self.E - (mu - 1) * map[:, 0])))
@@ -1040,10 +1052,10 @@ class RandomCroppedMapListToPixelArray(object):
                 )  # warp y vals to (0,1) range
             else:
                 # remove all items in map with coord 0 outside of x_range and coord 1 outside of y_range
-                indices = np.greater_equal(map[:,0], x_range[0]) \
-                    * np.less_equal(map[:,0], x_range[1]) \
-                    * np.greater_equal(map[:,1], y_range[0]) \
-                    * np.less_equal(map[:,1], y_range[1])
+                indices = np.greater_equal(map[:, 0], x_range[0]) \
+                    * np.less_equal(map[:, 0], x_range[1]) \
+                    * np.greater_equal(map[:, 1], y_range[0]) \
+                    * np.less_equal(map[:, 1], y_range[1])
                 map = map[indices, :]
                 # scale Poincare map to fit into the unit square
                 x_scaled = (map[:, 0] - x_range[0]) / (
@@ -1055,13 +1067,15 @@ class RandomCroppedMapListToPixelArray(object):
 
             # discretize crossings to grid coordinates
             x_scaled = np.uint8(np.round(float(self.img_width - 1) * x_scaled))
-            y_scaled = np.uint8(np.round(float(self.img_width - 1) * (1.0 - y_scaled)))
+            y_scaled = np.uint8(
+                np.round(float(self.img_width - 1) * (1.0 - y_scaled)))
             pixel_array[y_scaled, x_scaled] = np.uint8(
                 self.alpha * pixel_array[y_scaled, x_scaled]
             )  # shade pixels with alpha by counting crossings per square
         # normalize pixel values from [vmin, vmax] range to [-1,1] range
         image = 2.0 * (
-            (pixel_array.astype(np.float16) - self.vmin) / float(self.vmax - self.vmin)
+            (pixel_array.astype(np.float16) - self.vmin) /
+            float(self.vmax - self.vmin)
         )
         image -= 1.0
         return {"image": image, "mu": sample["mu"]}

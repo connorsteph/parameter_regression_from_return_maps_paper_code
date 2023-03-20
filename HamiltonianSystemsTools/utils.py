@@ -64,14 +64,14 @@ def plot_labeled_map(
 
     Input:
         axs - axis pair to be modified
-        
+
         labeled_map_list - a (2, num_pts) ragged nested sequence. The first coordinate is the numpy array of coordinates that mark each intersection with the Poincare section, \
             the second coordinate is the label given for each sequence of coordinates (to be used for colour-labeling)
-        
-        
+
+
     optional kwargs:
         x_coord: index of the state space being plotted on the x-axis, only used to generate automatic axis labels
-        
+
         y_coord: index of the state space being plotted on the y-axis, only used to generate automatic axis labels
 
         system: HamiltonianSystem object corresponding to the data in labeled_map_list, only used to generate automatic axis labels
@@ -206,7 +206,7 @@ class ps_vel_cb_batch:
 class HamiltonianSystem:
     """Computes the necessary Hamiltonian and Lagrangian heyoka expressions to create a simple-interface to integrate Hamiltonin systems using heyoka, especially for the construction of Poincare maps"""
 
-    def __init__(self, num_coords = None, num_params= None, H_func = None, L_func = None):
+    def __init__(self, num_coords=None, num_params=None, H_func=None, L_func=None):
         """
         Input:
             num_coords: int, dimension of the configuration manifold of the system\
@@ -301,13 +301,16 @@ class HamiltonianSystem:
                     self.H_lagrange_coords, self.p[i], self.p_expr[i]
                 )
             self.L = (
-                sum(self.qd[i] * self.p_expr[i] for i in range(self.num_coords))
+                sum(self.qd[i] * self.p_expr[i]
+                    for i in range(self.num_coords))
                 - self.H_lagrange_coords
             )
             self.L = simplify(self.L)
         self.__dynamics = [
-            *[simplify(hy.diff(self.H, self.p[i])) for i in range(self.num_coords)],
-            *[simplify(-hy.diff(self.H, self.q[i])) for i in range(self.num_coords)],
+            *[simplify(hy.diff(self.H, self.p[i]))
+              for i in range(self.num_coords)],
+            *[simplify(-hy.diff(self.H, self.q[i]))
+              for i in range(self.num_coords)],
         ]  # system dynamics
 
         self.__ODE_sys = [
@@ -342,7 +345,8 @@ class HamiltonianSystem:
         A_matrix_10 = np.array(
             [
                 [
-                    simplify(hy.diff(self.__ODE_sys[i + self.num_coords][1], self.q[j]))
+                    simplify(
+                        hy.diff(self.__ODE_sys[i + self.num_coords][1], self.q[j]))
                     for j in range(self.num_coords)
                 ]
                 for i in range(self.num_coords)
@@ -351,13 +355,15 @@ class HamiltonianSystem:
         A_matrix_11 = np.array(
             [
                 [
-                    simplify(hy.diff(self.__ODE_sys[i + self.num_coords][1], self.p[j]))
+                    simplify(
+                        hy.diff(self.__ODE_sys[i + self.num_coords][1], self.p[j]))
                     for j in range(self.num_coords)
                 ]
                 for i in range(self.num_coords)
             ]
         )
-        A_matrix = np.block([[A_matrix_00, A_matrix_01], [A_matrix_10, A_matrix_11]])
+        A_matrix = np.block([[A_matrix_00, A_matrix_01],
+                            [A_matrix_10, A_matrix_11]])
         RHS_mat = np.matmul(A_matrix, self.Phi_matrix)
         delta_dot = np.matmul(A_matrix, self.delta)
         self.__variational_augmented_ODE_sys = [
@@ -374,7 +380,8 @@ class HamiltonianSystem:
             (
                 self.Y_sum,
                 (
-                    2.0 * np.dot(self.delta, delta_dot) / np.dot(self.delta, self.delta)
+                    2.0 * np.dot(self.delta, delta_dot) /
+                    np.dot(self.delta, self.delta)
                     - self.Y_sum / (hy.time + 1e-12)
                 ),
             ),
@@ -464,7 +471,8 @@ class HamiltonianSystem:
             real_sols = [sol for sol in constraint_sols if ~np.isnan(sol)]
             if len(real_sols) > 0:  # check to ensure a real solution exists
                 if constrained_idx < self.num_coords:
-                    q_0[constrained_idx] = real_sols[randint(0, len(real_sols) - 1)]
+                    q_0[constrained_idx] = real_sols[randint(
+                        0, len(real_sols) - 1)]
                 else:
                     p_0[constrained_idx - self.num_coords] = real_sols[
                         randint(0, len(real_sols) - 1)
@@ -547,8 +555,8 @@ class HamiltonianSystem:
         for state in initial_state_list:
             constraint_sols = [
                 f(
-                    state[0 : self.num_coords],
-                    state[self.num_coords : 2 * self.num_coords],
+                    state[0: self.num_coords],
+                    state[self.num_coords: 2 * self.num_coords],
                     params,
                 )
                 for f in self.constraint_eqs[constraint_key]
@@ -557,7 +565,8 @@ class HamiltonianSystem:
             if len(real_sols) > 0:  # check to ensure a real solution exists
                 # for sol in real_sols:
                 #     state[constrained_idx] = sol
-                state[constrained_idx] = real_sols[1]  # take the positive solution
+                # take the positive solution
+                state[constrained_idx] = real_sols[1]
                 solved_state_list.append(state.copy())
 
         return np.array(solved_state_list)
@@ -673,7 +682,8 @@ class HamiltonianSystem:
             ta.nt_events[0].callback.crossing_times = []
             ta.nt_events[0].callback.crossing_coords = []
             ta.propagate_until(t_lim)
-            coord_list.append(np.array(ta.nt_events[0].callback.crossing_coords))
+            coord_list.append(
+                np.array(ta.nt_events[0].callback.crossing_coords))
         return coord_list
 
     def generate_poincare_points_ensemble(
@@ -691,7 +701,6 @@ class HamiltonianSystem:
         init_state_list=None,
         max_workers=4,
     ):
-
         """
         Returns a list of Poincare crossing coordinate sequences starting for either randomly generated initial conditions using 'rng_gen_list' and 'num_pts', or starting from 'initial_state_list'
 
@@ -888,7 +897,8 @@ class HamiltonianSystem:
                 ta.state[:] = np.transpose(init_state_batches[i])
             else:
                 ta.state[:] = np.pad(
-                    np.transpose(init_state_batches[i]), ((0, 0), (0, pad_num)), "edge"
+                    np.transpose(init_state_batches[i]), ((
+                        0, 0), (0, pad_num)), "edge"
                 )
             return ta
 
@@ -898,13 +908,15 @@ class HamiltonianSystem:
 
                 def wrap_cb_upper_batch(ta, t, d_sgn, b_idx):
                     ta.state[wrap_coords, b_idx] = (
-                        np.mod(ta.state[wrap_coords, b_idx] + np.pi, 2.0 * np.pi) - np.pi
+                        np.mod(ta.state[wrap_coords, b_idx] +
+                               np.pi, 2.0 * np.pi) - np.pi
                     )
                     return True
 
                 def wrap_cb_lower_batch(ta, t, d_sgn, b_idx):
                     ta.state[wrap_coords, b_idx] = (
-                        np.mod(ta.state[wrap_coords, b_idx] - np.pi, 2.0 * np.pi) + np.pi
+                        np.mod(ta.state[wrap_coords, b_idx] -
+                               np.pi, 2.0 * np.pi) + np.pi
                     )
                     return True
 
@@ -930,8 +942,10 @@ class HamiltonianSystem:
 
             ta_batch = hy.taylor_adaptive_batch(
                 self.__ODE_sys,
-                np.empty(self.order).repeat(batch_size).reshape(-1, batch_size),
-                pars=np.array(params).repeat(batch_size).reshape(-1, batch_size),
+                np.empty(self.order).repeat(
+                    batch_size).reshape(-1, batch_size),
+                pars=np.array(params).repeat(
+                    batch_size).reshape(-1, batch_size),
                 t_events=t_events,
                 nt_events=[section_event],
             )
@@ -957,7 +971,7 @@ class HamiltonianSystem:
             return [item for sublist in map_list_nested for item in sublist], ta_batch
         else:
             return [item for sublist in map_list_nested for item in sublist]
-            
+
     def generate_labeled_poincare_points_ensemble(
         self,
         section_event=None,
@@ -1027,15 +1041,16 @@ class HamiltonianSystem:
         delta_init = delta_init / np.linalg.norm(delta_init)
 
         def renorm_cb(ta, mr, d_sgn):  # renormalize deviation vector and store values
-            norm = np.linalg.norm(ta.state[self.order : 2 * self.order])
-            ta.state[self.order : 2 * self.order] /= norm
+            norm = np.linalg.norm(ta.state[self.order: 2 * self.order])
+            ta.state[self.order: 2 * self.order] /= norm
             return True
 
         init_state_list = [
             [*state, *delta_init, 0.0, 0.0] for state in init_state_list
         ]  # pad state to include variational terms
         t_events = [
-            hy.t_event(self.Y_mean_sum_t - 30.0, direction=hy.event_direction.positive),
+            hy.t_event(self.Y_mean_sum_t - 30.0,
+                       direction=hy.event_direction.positive),
             hy.t_event(
                 sum(delta**2 for delta in self.delta) - 1e3,
                 direction=hy.event_direction.positive,
@@ -1160,7 +1175,7 @@ class HamiltonianSystem:
             batch_size: the chunk size for use in heyoka's batched integration -- best choice depends on system architecture, see the heyoka docs, but 4 is standard for modern consumer CPUs
 
             ta (hy.taylor_adaptive_batch) (optional): 
-        
+
             ta_label (hy.taylor_adaptive_batch) (optional if ta is not specified):
 
             output_ta_template_pair (bool) (optional, default=False): 
@@ -1212,8 +1227,8 @@ class HamiltonianSystem:
             def renorm_cb(
                 ta, mr, d_sgn, b_idx
             ):  # renormalize deviation vector and store values
-                norm = np.linalg.norm(ta.state[self.order : 2 * self.order])
-                ta.state[self.order : 2 * self.order, b_idx] /= norm
+                norm = np.linalg.norm(ta.state[self.order: 2 * self.order])
+                ta.state[self.order: 2 * self.order, b_idx] /= norm
                 return True
 
             t_events = [
@@ -1234,14 +1249,16 @@ class HamiltonianSystem:
 
                 def wrap_cb_upper_batch(ta, t, d_sgn, b_idx):
                     ta.state[wrap_coords, b_idx] = (
-                        np.mod(ta.state[wrap_coords, b_idx] + np.pi, 2.0 * np.pi)
+                        np.mod(ta.state[wrap_coords, b_idx] +
+                               np.pi, 2.0 * np.pi)
                         - np.pi
                     )
                     return True
 
                 def wrap_cb_lower_batch(ta, t, d_sgn, b_idx):
                     ta.state[wrap_coords, b_idx] = (
-                        np.mod(ta.state[wrap_coords, b_idx] - np.pi, 2.0 * np.pi)
+                        np.mod(ta.state[wrap_coords, b_idx] -
+                               np.pi, 2.0 * np.pi)
                         + np.pi
                     )
                     return True
@@ -1265,7 +1282,7 @@ class HamiltonianSystem:
                     ],
                 ]
                 t_events = [*t_events, *wrap_events]
-                
+
             early_stopping_MEGNO_augmented_ODE_sys = [
                 [LHS, hy.par[len(params)] * RHS]
                 for LHS, RHS in self.__MEGNO_augmented_ODE_sys
@@ -1287,7 +1304,8 @@ class HamiltonianSystem:
                 np.zeros(len(early_stopping_MEGNO_augmented_ODE_sys))
                 .repeat(batch_size)
                 .reshape(-1, batch_size),
-                pars=np.array(params).repeat(batch_size).reshape(-1, batch_size),
+                pars=np.array(params).repeat(
+                    batch_size).reshape(-1, batch_size),
                 t_events=t_events,
                 nt_events=[],
                 time=[t_lim] * batch_size,
@@ -1351,7 +1369,8 @@ class HamiltonianSystem:
         labeled_map_list_nested = [
             [
                 (
-                    np.array(ret[i][0].nt_events[0].callback.crossing_coords[j]),
+                    np.array(
+                        ret[i][0].nt_events[0].callback.crossing_coords[j]),
                     ret[i][0].state[MEGNO_idx, j],
                 )
                 for j in range(len(init_state_batches[i]))
@@ -1592,7 +1611,8 @@ class HamiltonianSystem:
                 ta.state[:] = np.transpose(init_state_batches[i])
             else:
                 ta.state[:] = np.pad(
-                    np.transpose(init_state_batches[i]), ((0, 0), (0, pad_num)), "edge"
+                    np.transpose(init_state_batches[i]), ((
+                        0, 0), (0, pad_num)), "edge"
                 )
             return ta
 
@@ -1601,13 +1621,15 @@ class HamiltonianSystem:
 
             def wrap_cb_upper_batch(ta, t, d_sgn, b_idx):
                 ta.state[wrap_coords, b_idx] = (
-                    np.mod(ta.state[wrap_coords, b_idx] + np.pi, 2.0 * np.pi) - np.pi
+                    np.mod(ta.state[wrap_coords, b_idx] +
+                           np.pi, 2.0 * np.pi) - np.pi
                 )
                 return True
 
             def wrap_cb_lower_batch(ta, t, d_sgn, b_idx):
                 ta.state[wrap_coords, b_idx] = (
-                    np.mod(ta.state[wrap_coords, b_idx] - np.pi, 2.0 * np.pi) + np.pi
+                    np.mod(ta.state[wrap_coords, b_idx] -
+                           np.pi, 2.0 * np.pi) + np.pi
                 )
                 return True
 
@@ -1649,7 +1671,8 @@ class HamiltonianSystem:
         )
         map_list_nested = [
             [
-                np.array(ret[i][0].nt_events[0].callback.crossing_velocities[j])
+                np.array(
+                    ret[i][0].nt_events[0].callback.crossing_velocities[j])
                 for j in range(len(init_state_batches[i]))
             ]
             for i in range(num_batches)
@@ -1747,8 +1770,8 @@ class HamiltonianSystem:
         def renorm_cb(
             ta, mr, d_sgn, b_idx
         ):  # renormalize deviation vector and store values
-            norm = np.linalg.norm(ta.state[self.order : 2 * self.order])
-            ta.state[self.order : 2 * self.order, b_idx] /= norm
+            norm = np.linalg.norm(ta.state[self.order: 2 * self.order])
+            ta.state[self.order: 2 * self.order, b_idx] /= norm
             return True
 
         t_events = [
@@ -1768,7 +1791,8 @@ class HamiltonianSystem:
                 ta.state[:] = np.transpose(init_state_batches[i])
             else:
                 ta.state[:] = np.pad(
-                    np.transpose(init_state_batches[i]), ((0, 0), (0, pad_num)), "edge"
+                    np.transpose(init_state_batches[i]), ((
+                        0, 0), (0, pad_num)), "edge"
                 )
             return ta
 
@@ -1777,13 +1801,15 @@ class HamiltonianSystem:
 
             def wrap_cb_upper_batch(ta, t, d_sgn, b_idx):
                 ta.state[wrap_coords, b_idx] = (
-                    np.mod(ta.state[wrap_coords, b_idx] + np.pi, 2.0 * np.pi) - np.pi
+                    np.mod(ta.state[wrap_coords, b_idx] +
+                           np.pi, 2.0 * np.pi) - np.pi
                 )
                 return True
 
             def wrap_cb_lower_batch(ta, t, d_sgn, b_idx):
                 ta.state[wrap_coords, b_idx] = (
-                    np.mod(ta.state[wrap_coords, b_idx] - np.pi, 2.0 * np.pi) + np.pi
+                    np.mod(ta.state[wrap_coords, b_idx] -
+                           np.pi, 2.0 * np.pi) + np.pi
                 )
                 return True
 
@@ -1870,7 +1896,8 @@ class HamiltonianSystem:
         labeled_map_list_nested = [
             [
                 (
-                    np.array(ret[i][0].nt_events[0].callback.crossing_velocities[j]),
+                    np.array(
+                        ret[i][0].nt_events[0].callback.crossing_velocities[j]),
                     ret[i][0].state[MEGNO_idx, j],
                 )
                 for j in range(len(init_state_batches[i]))

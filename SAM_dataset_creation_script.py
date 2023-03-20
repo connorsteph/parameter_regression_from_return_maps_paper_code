@@ -28,22 +28,28 @@ from tqdm import tqdm
 Define the Swinging Atwood's Machine in terms of its Lagrangian,
 written in Lagrange coordinates (r, phi, r_dot, phi_dot)
 """
+
+
 def T_func(q, qd, params):
     return 1 / 2 * params[0] * (qd[0] ** 2) + 1 / 2 * (
         (qd[0] ** 2) + (q[0] ** 2) * (qd[1] ** 2)
     )  # SAM kinetic term
+
 
 def U_func(q, qd, params):
     return params[0] * q[0] * params[1] - q[0] * params[1] * hy.cos(
         q[1]
     )  # SAM potential term
 
+
 def L_func(q=None, qd=None, params=None):
     return T_func(q=q, qd=qd, params=params) - U_func(q=q, qd=qd, params=params)
+
 
 SAM = HamiltonianSystem(num_coords=2, num_params=2, L_func=L_func)
 
 # define Heyoka events and callbacks to record points from the Poincaré map
+
 
 class ps_cb_time_stamp_cos_batch:
     def __init__(self, batch_size=4):
@@ -51,11 +57,12 @@ class ps_cb_time_stamp_cos_batch:
 
     def __call__(self, ta, t, d_sgn, b_idx):
         ta.update_d_output(t)
-        if np.cos(ta.d_output[1, b_idx]) > 0: # 
+        if np.cos(ta.d_output[1, b_idx]) > 0:
             self.crossing_coords[b_idx].append(
                 np.array([*ta.d_output.copy()[:, b_idx], t])
             )
         return False
+
 
 SAM.ps_cb_batch = ps_cb_time_stamp_cos_batch()
 
@@ -77,7 +84,7 @@ SAM_ps_ev_batch = hy.nt_event_batch(
 # This allows us to only record the Poincare section crossings that occur before t_lim, but still have the ability to look at the value of the MEGNO indicator after an
 # arbitrarily long time lim (here at label_t_lim)
 
-# i.e. label_t_lim only affects the value of 'terminal_label' in the dataset, which correspond to the value of the MEGNO indicator after propagation until label_t_lim 
+# i.e. label_t_lim only affects the value of 'terminal_label' in the dataset, which correspond to the value of the MEGNO indicator after propagation until label_t_lim
 # """
 
 # # size of the grid of points to be sampled along each dimension
@@ -119,6 +126,7 @@ SAM_ps_ev_batch = hy.nt_event_batch(
 # mu_pts = {mu_pts}
 # """
 
+
 def main(args):
     np.random.seed(42)
     # np.seterr(all="ignore") # we're gonna run into some NaN's when we're setting initial states :)
@@ -145,15 +153,18 @@ def main(args):
     dim_pts = config.getint("DATASET", "dim_pts")
     num_samples = config.getint("DATASET", "num_samples")
     # -------------------------------------------------------
-    
-    lookup_file_path = root_dir + "main_lookup.csv" # the name of the lookup file to use or create
-    data_file_dir = root_dir + "npz_files/" # path of the directory to store the actual datafiles in
+
+    # the name of the lookup file to use or create
+    lookup_file_path = root_dir + "main_lookup.csv"
+    # path of the directory to store the actual datafiles in
+    data_file_dir = root_dir + "npz_files/"
     Path(data_file_dir).mkdir(parents=True, exist_ok=True)
 
     # write config to log file
     datetime_now_str = str(datetime.now()).split(".")[0]
     datetime_now_str = (
-        datetime_now_str.replace(" ", "_").replace(":", "hr", 1).replace(":", "min", 1)
+        datetime_now_str.replace(" ", "_").replace(
+            ":", "hr", 1).replace(":", "min", 1)
         + "sec"
     )
     logfile_path = root_dir + f"log_{datetime_now_str}.yaml"
@@ -161,16 +172,17 @@ def main(args):
         yaml.dump(
             {"g": g, "E": E, "t_lim": t_lim, "dim_pts": dim_pts,
                 "mu_min": mu_min, "mu_max": mu_max, "num_samples": num_samples
-            },
+             },
             logfile
-            )
-    
-    header = "" if Path.exists(Path(lookup_file_path)) else "mu,t_lim,dim_pts,fname,logfile"
+        )
+
+    header = "" if Path.exists(
+        Path(lookup_file_path)) else "mu,t_lim,dim_pts,fname,logfile"
 
     ta = None
     order = len(SAM.get_ODE_sys())
     iter = 0
-    
+
     mu_list = np.linspace(mu_min, mu_max, num_samples)
 
     with tqdm(total=len(mu_list)) as pbar:
@@ -189,7 +201,8 @@ def main(args):
             )
 
             if ta is not None:
-                ta.pars[:] = np.array([mu, g,]).repeat(4).reshape(-1, batch_size)
+                ta.pars[:] = np.array([mu, g,]).repeat(
+                    4).reshape(-1, batch_size)
 
             (
                 map_list,
@@ -235,6 +248,7 @@ def main(args):
             iter += 1
             pbar.update(1)
         pbar.close()
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

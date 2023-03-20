@@ -162,3 +162,5 @@ cython_debug/
 experiments
 datasets
 lookup_tables
+
+*.csv
