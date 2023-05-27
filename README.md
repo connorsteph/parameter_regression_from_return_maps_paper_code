@@ -35,7 +35,7 @@ conda activate DL_PSI_env
 python collect_env
 ```
 
-And confirming that the output indicates that PyTorch thinks that CuDA is available.
+And confirming that the output indicates that PyTorch thinks that CuDA is available (see e.g. https://stackoverflow.com/questions/57977880/any-script-to-test-the-installation-of-pytorch)
 
 # Running the Code:
 
