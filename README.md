@@ -37,12 +37,12 @@ python collect_env
 
 And confirming that the output indicates that PyTorch thinks that CuDA is available.
 
-# Running the code:
+# Running the Code:
 
 ## **Model Training**: 
 ---
 ### Hénon Map Experiments:
----
+
 We recommend starting with replicating our Hénon map experiments. The config file is `configs/henon_study.cfg`. 
 
 Be sure that the `num_workers` parameter in this file is set to the correct number of CPU cores on your machine (ideally the number of physical cores) and `num_gpu` is set to the number of GPUs that you want to use. There is likely no need to use more than 1 GPU for this experiment -- the small batch sizes that we use mean that you can probably train two models on the same GPU simultaneously (simply run two instances of a training script in different terinal windows -- with different configs so you aren't duplicating work of course).
@@ -65,7 +65,6 @@ python henon_map_train_model.py --cfg configs/henon_study.cfg
 ```
 
 ### Swinging Atwood's Machine Experiments:
----
 If you haven't already, we recommend that you first try replicating our Hénon map experiments. 
 
 To replicate our SAM experiments you will first need to create the dataset -- this process will occupy a consumer CPU for quite a few hours, and **will generate several GB of data** on your machine. 
@@ -95,6 +94,9 @@ python SAM_train_model.py --cfg configs/SAM_study.cfg
 ```
     
 ## **Plotting Experiment Results**:
+
+---
+After running the respective training scripts, you can replicate the analysis from the paper by running the `SAM_analysis_plots.ipynb` and `hénon_map_analysis_plots.ipynb` notebooks. These notebooks will load configuration information from the respective config files, and will perform analysis on the saved models from the studies.
 
 ---
 
