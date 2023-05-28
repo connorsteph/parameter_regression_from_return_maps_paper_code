@@ -185,6 +185,20 @@ def main(args):
 
     mu_list = np.linspace(mu_min, mu_max, num_samples)
 
+    ta_template = SAM.generate_poincare_points_ensemble_batch(
+                section_event=SAM_ps_ev_batch,
+                t_lim=t_lim,
+                params=[0., 0.],
+                integral_constraint=SAM.H,
+                integral_value=E,
+                constrained_idx=3,
+                init_state_list=initial_state_list,
+                max_workers=num_workers,
+                batch_size=batch_size,
+                ta=ta,
+                output_ta_template=True,
+            )
+
     with tqdm(total=len(mu_list)) as pbar:
         for mu in tqdm((mu_list)):
             initial_state_list = (
@@ -200,14 +214,7 @@ def main(args):
                 initial_state_list, SAM.H, E, 3, [mu, g]
             )
 
-            if ta is not None:
-                ta.pars[:] = np.array([mu, g,]).repeat(
-                    4).reshape(-1, batch_size)
-
-            (
-                map_list,
-                ta,
-            ) = SAM.generate_poincare_points_ensemble_batch(
+            map_list = SAM.generate_poincare_points_ensemble_batch(
                 section_event=SAM_ps_ev_batch,
                 t_lim=t_lim,
                 params=[mu, g],
@@ -217,8 +224,7 @@ def main(args):
                 init_state_list=initial_state_list,
                 max_workers=num_workers,
                 batch_size=batch_size,
-                ta=ta,
-                output_ta_template=True,
+                ta=ta_template,
             )
 
             coord_trajectories = np.empty(dim_pts**2, object)

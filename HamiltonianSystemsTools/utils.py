@@ -817,6 +817,70 @@ class HamiltonianSystem:
             for idx in range(num_pts)
         ]
 
+    def create_poincare_points_ensemble_batch_ta_template(
+        self,
+        section_event=None,
+        t_events=[],
+        wrap_coords=None,
+        t_lim=None,
+        rng_gen_list=None,
+        params=[],
+        num_pts=None,
+        constrained_idx=None,
+        integral_constraint=None,
+        integral_value=None,
+        init_state_list=None,
+        max_workers=4,
+        batch_size=4,
+    ):
+        if wrap_coords is not None:
+            wrap_coords = np.array(wrap_coords)
+
+            def wrap_cb_upper_batch(ta, t, d_sgn, b_idx):
+                ta.state[wrap_coords, b_idx] = (
+                    np.mod(ta.state[wrap_coords, b_idx] +
+                            np.pi, 2.0 * np.pi) - np.pi
+                )
+                return True
+
+            def wrap_cb_lower_batch(ta, t, d_sgn, b_idx):
+                ta.state[wrap_coords, b_idx] = (
+                    np.mod(ta.state[wrap_coords, b_idx] -
+                            np.pi, 2.0 * np.pi) + np.pi
+                )
+                return True
+
+            wrap_events = [
+                *[
+                    hy.t_event_batch(
+                        self.q[i] - np.pi,
+                        direction=hy.event_direction.positive,
+                        callback=wrap_cb_upper_batch,
+                    )
+                    for i in wrap_coords
+                ],
+                *[
+                    hy.t_event_batch(
+                        self.q[i] + np.pi,
+                        direction=hy.event_direction.negative,
+                        callback=wrap_cb_lower_batch,
+                    )
+                    for i in wrap_coords
+                ],
+            ]
+            t_events = [*t_events, *wrap_events]
+
+        ta_batch = hy.taylor_adaptive_batch(
+            self.__ODE_sys,
+            np.empty(self.order).repeat(
+                batch_size).reshape(-1, batch_size),
+            pars=np.array(params).repeat(
+                batch_size).reshape(-1, batch_size),
+            t_events=t_events,
+            nt_events=[section_event],
+        )  
+        return ta_batch
+
     def generate_poincare_points_ensemble_batch(
         self,
         section_event=None,
