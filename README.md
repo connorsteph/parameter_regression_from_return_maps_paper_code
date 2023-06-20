@@ -1,3 +1,5 @@
+Code to replicate results from the paper "Deep Learning of Dynamical System Parameters from Return Maps as Images" by Connor James Stephens and Emmanuel Blazqeuz.
+
 # Set Up:
 
 We assume you have a working installation of conda (If not, see the docs at https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html for installation instructions -- we recommend using the miniconda installer), and an NVIDIA GPU with drivers installed.
