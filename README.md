@@ -92,7 +92,9 @@ conda activate poincare_DL_env
 # run the SAM experiments
 python SAM_train_model.py --cfg configs/SAM_study.cfg
 ```
-    
+
+Note that this script relies on lookup tables for the train/val/test data splits, with location specified in the config file. 
+
 ## **Plotting Experiment Results**:
 
 ---
@@ -107,4 +109,7 @@ A GPU is more or less required to run the code in this repo. Our Hénon map expe
 Our SAM experiments require several GB of disk space to store trajectory data, as well as ~32GB of system RAM to run comfortably.
 
 # Known issues:
-- GTX 1660 Ti GPUs currently return NaNs when running with FP16 precision (see e.g. https://github.com/pytorch/pytorch/issues/58123). Switching to full FP32 precision (i.e. setting `precision = 32` in the `configs/` files allows our experiments to run, but may not reproduce the results in the paper.
+
+- GTX 1660 Ti GPUs currently return NaNs when running with FP16 precision (see e.g. https://github.com/pytorch/pytorch/issues/58123). Switching to full FP32 precision (i.e. setting `precision = 32` in the `configs/` files allows our experiments to run, but may not reproduce the results in the paper. (Guess which graphics card my personal laptop has...)
+
+- We use [JAX](https://github.com/google/jax) to create the Hénon map dataset on the fly, and JAX is not currently compatible with Windows. The Linux subsystem for Windows is a well-supported workaround for this issue.
