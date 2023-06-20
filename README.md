@@ -1,3 +1,5 @@
+Code to replicate results from the paper "Deep Learning of Dynamical System Parameters from Return Maps as Images" by Connor James Stephens and Emmanuel Blazqeuz.
+
 # Set Up:
 
 We assume you have a working installation of conda (If not, see the docs at https://docs.conda.io/projects/conda/en/stable/user-guide/install/index.html for installation instructions -- we recommend using the miniconda installer), and an NVIDIA GPU with drivers installed.
@@ -67,7 +69,7 @@ python henon_map_train_model.py --cfg configs/henon_study.cfg
 ### Swinging Atwood's Machine Experiments:
 If you haven't already, we recommend that you first try replicating our Hénon map experiments. 
 
-To replicate our SAM experiments you will first need to create the dataset -- this process will occupy a consumer CPU for quite a few hours, and **will generate several GB of data** on your machine. 
+To replicate our SAM experiments you will first need to create the dataset -- this process will occupy a consumer CPU for quite a few hours, and **will generate ~68GB of data** on your machine. 
 
 After you've created the dataset, you'll want to be sure to set up `configs/SAM_study.cfg` and ensure that you update lines with `./datasets/` to include the correct path to the dataset you created on your machine. 
 
